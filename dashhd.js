@@ -147,10 +147,10 @@ var DashHd = ("object" === typeof module && exports) || {};
     let Secp256k1 =
       //@ts-ignore
       window.nobleSecp256k1 || require("@dashincubator/secp256k1");
-    let p = Secp256k1.utils._normalizePrivateKey(privateKeyCopy);
-    let t = Secp256k1.utils._normalizePrivateKey(tweak);
-    return Secp256k1.utils._bigintTo32Bytes(
-      Secp256k1.utils.mod(p + t, Secp256k1.CURVE.n),
+    let p = Secp256k1.utils.normPrivateKeyToScalar(privateKeyCopy);
+    let t = Secp256k1.utils.normPrivateKeyToScalar(tweak);
+    return Secp256k1.etc.numberToBytesBE(
+      Secp256k1.etc.mod(p + t, Secp256k1.CURVE.n),
     );
   };
 
@@ -161,7 +161,7 @@ var DashHd = ("object" === typeof module && exports) || {};
       window.nobleSecp256k1 || require("@dashincubator/secp256k1");
 
     try {
-      let point = Secp256k1.Point.fromHex(pubBytes);
+      let point = Secp256k1.ProjectivePoint.fromHex(pubBytes);
       pubBytes = point.toRawBytes(COMPRESSED);
     } catch (e) {
       throw new Error("Invalid public key");
@@ -176,9 +176,9 @@ var DashHd = ("object" === typeof module && exports) || {};
       //@ts-ignore
       window.nobleSecp256k1 || require("@dashincubator/secp256k1");
 
-    let P = Secp256k1.Point.fromHex(publicKeyCopy);
-    let t = Secp256k1.utils._normalizePrivateKey(tweak);
-    let Q = Secp256k1.Point.BASE.multiplyAndAddUnsafe(P, t, 1n);
+    let P = Secp256k1.ProjectivePoint.fromHex(publicKeyCopy);
+    let t = Secp256k1.utils.normPrivateKeyToScalar(tweak);
+    let Q = Secp256k1.ProjectivePoint.BASE.mulAddQUns(P, t, 1n);
     if (!Q) {
       throw new Error("Tweaked point at infinity");
     }

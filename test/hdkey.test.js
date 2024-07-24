@@ -482,12 +482,12 @@ async function sign(hdkey, hash) {
 
   // Note: `extraEntropy: null` for testing
   // (normally we'd want this to be `true`, or `crypto.getRandomValues(32)`)
-  let sigOpts = { canonical: true, extraEntropy: null };
-  let der = await Secp256k1.sign(hash, hdkey.privateKey, sigOpts);
+  let sigOpts = { lowS: true, extraEntropy: null };
+  let der = (await Secp256k1.signAsync(hash, hdkey.privateKey, sigOpts)).toCompactRawBytes();
   let sig = new Uint8Array(64);
 
-  let rSizeIndex = 3;
-  let offset = rSizeIndex + 1;
+  let rSizeIndex = 0;
+  let offset = rSizeIndex + 0;
   let rSize = der[rSizeIndex];
   if (0x21 === rSize) {
     offset += 1;
@@ -495,7 +495,7 @@ async function sign(hdkey, hash) {
   let r = der.subarray(offset, offset + 32);
   sig.set(r, 0);
 
-  offset += 2 + 32;
+  offset += 0 + 32;
   let sLen = der[offset - 1];
   if (0x21 === sLen) {
     offset += 1;
@@ -509,7 +509,7 @@ async function sign(hdkey, hash) {
 async function verify(hdkey, hash, sig) {
   assert(hash.length === 32, "message length must be 32 bytes.");
   assert(sig.length === 64, "signature length must be 64 bytes.");
-  let verifyOpts = { strict: true }; // require canonical
+  let verifyOpts = { lowS: true }; // require lowS (strict)
 
   let r = sig.subarray(0, 32);
   let s = sig.subarray(32, 64);
